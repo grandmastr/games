@@ -1,6 +1,12 @@
-import {ReactElement} from "react";
+import {ReactElement} from 'react';
 
-export default function ({children}: {children: React.ReactNode}): ReactElement {
+/**
+ * Renders a button component.
+ *
+ * @param {React.ReactNode} children - The content to be displayed inside the button.
+ * @return {React.ReactElement} The rendered button component.
+ */
+const Button = ({children}: {children: React.ReactNode}): ReactElement => {
   return (
     <button
       className={
@@ -10,3 +16,5 @@ export default function ({children}: {children: React.ReactNode}): ReactElement 
     </button>
   );
 };
+
+export default Button;

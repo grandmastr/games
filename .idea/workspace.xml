@@ -5,10 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ec5a4e6c-5812-43b0-8621-2f5a543538db" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/features/PongGame/components/Button/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/features/PongGame/components/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/features/PongGame/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/PongGame/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/PongGame/components/Button/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/PongGame/components/Button/index.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +73,7 @@
       <updated>1704032981548</updated>
       <workItem from="1704032985741" duration="598000" />
       <workItem from="1704034209833" duration="3000" />
-      <workItem from="1704034228916" duration="12585000" />
+      <workItem from="1704034228916" duration="12753000" />
     </task>
     <servers />
   </component>
