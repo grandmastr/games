@@ -9,7 +9,7 @@ const ballRadius: number = 10;
 const paddleHeight: number = 80;
 const paddleWidth: number = 10;
 const paddleSpeed: number = 10;
-const maxScore: number = 0;
+const maxScore: number = 10;
 
 const keys: string[] = ['w', 's', 'ArrowUp', 'ArrowDown'];
 
@@ -18,7 +18,7 @@ type Positions = {
   ballY: number;
   leftPaddleY: number;
   rightPaddleY: number;
-} | undefined
+}
 
 type Score = {
   leftPlayer: number;
@@ -42,15 +42,11 @@ const Pong = (): ReactElement => {
   const animationId = React.useRef<number | null>(null);
 
   const [isRunning, setIsRunning] = React.useState<boolean>(false);
-  const [position, setPosition] = useImmer<Positions>(() => {
-    if (canvas.current) {
-      return {
-        ballX: canvas.current.width * 0.5,
-        ballY: canvas.current.height * 0.5,
-        leftPaddleY: canvas.current.height * 0.5 - paddleHeight * 0.5,
-        rightPaddleY: canvas.current.height * 0.5 - paddleHeight * 0.5
-      }
-    }
+  const [position, setPosition] = useImmer<Positions>({
+    ballX: canvas.current ? canvas.current.width * 0.5 : 0,
+    ballY: canvas.current ? canvas.current.height * 0.5 : 0,
+    leftPaddleY: canvas.current ? canvas.current.height * 0.5 - paddleHeight * 0.5 : 0,
+    rightPaddleY: canvas.current ? canvas.current.height * 0.5 - paddleHeight * 0.5 : 0
   });
 
   const [score, setScore] = useImmer<Score>({
@@ -63,7 +59,7 @@ const Pong = (): ReactElement => {
     y: 5
   })
 
-  const [isKeyDown, setIsKeyDown] = useImmer<KeyDown>({
+  const [keyDown, setKeyDown] = useImmer<KeyDown>({
     ArrowUp: false,
     ArrowDown: false,
     w: false,
@@ -71,14 +67,7 @@ const Pong = (): ReactElement => {
   });
 
   React.useEffect(() => {
-    let ctx: CanvasRenderingContext2D;
-
-    if (canvas.current) {
-      // @ts-ignore
-      ctx = canvas.current.getContext('2d');
-
-      paintInCanvas();
-    }
+    paintInCanvas();
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -88,6 +77,14 @@ const Pong = (): ReactElement => {
       window.removeEventListener("keyup", handleKeyUp);
     }
   }, []);
+
+  React.useEffect(() => {
+    console.log(position);
+  }, [position])
+
+  React.useEffect(() => {
+    updateGame();
+  }, [keyDown])
 
   const startGame = (): void => {
     if (!isRunning) {
@@ -123,46 +120,121 @@ const Pong = (): ReactElement => {
   }
 
   const updateGame = (): void => {
-    if (position) {
-      if (isKeyDown.ArrowUp && position.rightPaddleY > 0) {
-        setPosition(draft => {
-          if (draft) {
-            draft.rightPaddleY -= paddleSpeed;
-          }
-        })
-      } else if (isKeyDown.ArrowDown && position.rightPaddleY + paddleHeight < (canvas.current as HTMLCanvasElement).height) {
-        setPosition(draft => {
-          if (draft) {
-            draft.rightPaddleY += paddleSpeed;
-          }
-        })
-      }
-
-      if (isKeyDown.w && position.leftPaddleY > 0) {
-        setPosition(draft => {
-          if (draft) {
-            draft.leftPaddleY -= paddleSpeed;
-          }
-        })
-      } else if (isKeyDown.s && position.leftPaddleY + paddleHeight < (canvas.current as HTMLCanvasElement).height) {
-        setPosition(draft => {
-          if (draft) {
-            draft.leftPaddleY += paddleSpeed;
-          }
-        })
-      }
-
+    if (keyDown.ArrowUp && position.rightPaddleY > 0) {
       setPosition(draft => {
         if (draft) {
-          draft.ballX += ballSpeed.x;
-          draft.ballY += ballSpeed.y;
+          draft.rightPaddleY -= paddleSpeed;
+        }
+      })
+    } else if (keyDown.ArrowDown && position.rightPaddleY + paddleHeight < (canvas.current as HTMLCanvasElement).height) {
+      setPosition(draft => {
+        if (draft) {
+          draft.rightPaddleY += paddleSpeed;
         }
       })
     }
+
+    if (keyDown.w && position.leftPaddleY > 0) {
+      setPosition(draft => {
+        if (draft) {
+          draft.leftPaddleY -= paddleSpeed;
+        }
+      })
+    } else if (keyDown.s && position.leftPaddleY + paddleHeight < (canvas.current as HTMLCanvasElement).height) {
+      setPosition(draft => {
+        if (draft) {
+          draft.leftPaddleY += paddleSpeed;
+        }
+      })
+    }
+
+    // actually move the ball
+    setPosition(draft => {
+      if (draft) {
+        draft.ballX += ballSpeed.x;
+        draft.ballY += ballSpeed.y;
+      }
+    });
+
+    // checking if ball collides with top or bottom of canvas
+    if (position.ballY - ballRadius < 0) {
+      setBallSpeed(draft => {
+        draft.y = -draft.y;
+      });
+    }
+
+    // checking for collision with left paddle
+    if (position.ballX - ballRadius < paddleWidth && position.ballY > position.leftPaddleY && position.ballY < position.leftPaddleY + paddleHeight) {
+      setBallSpeed(draft => {
+        draft.x = -draft.x;
+      });
+    }
+
+    // checking for collision with right paddle
+    if (position.ballX + ballRadius > (canvas.current as HTMLCanvasElement).width - paddleWidth && position.ballY > position.rightPaddleY && position.ballY < position.rightPaddleY + paddleHeight) {
+      setBallSpeed(draft => {
+        draft.x = -draft.x;
+      });
+    }
+
+    if (position.ballX < 0) {
+      setScore(draft => {
+        draft.rightPlayer++;
+      })
+
+      reset();
+    } else if (position.ballX > (canvas.current as HTMLCanvasElement).width) {
+      setScore(draft => {
+        draft.leftPlayer++;
+      })
+
+      reset();
+    }
+
+    if (score.leftPlayer === maxScore) {
+      window.alert('Player 1 wins!');
+    } else if (score.rightPlayer === maxScore) {
+      window.alert('Player 2 wins!');
+    }
+
+    paintInCanvas();
   }
 
   const paintInCanvas = (): void => {
+    let ctx: CanvasRenderingContext2D;
 
+    canvas.current = canvas.current as HTMLCanvasElement
+
+    // @ts-ignore
+    ctx = canvas.current.getContext('2d');
+
+    ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
+
+    ctx.fillStyle = '#FFF';
+    ctx.font = "16px Arial";
+    ctx.strokeStyle = '#FFF';
+
+    ctx.beginPath();
+    ctx.moveTo(canvas.current.width / 2, 0);
+    ctx.lineTo(canvas.current.width / 2, canvas.current.height);
+    ctx.stroke();
+    ctx.closePath();
+
+    // draw ball
+    ctx.beginPath();
+    console.log(1)
+    ctx.arc(position.ballX + 20, position.ballY + 50, ballRadius, 0, Math.PI * 2);
+    console.log(2)
+    ctx.fill();
+    console.log(3)
+    ctx.closePath();
+    console.log(4)
+
+    ctx.fillRect(0, position.leftPaddleY, paddleWidth, paddleHeight);
+
+    ctx.fillRect(canvas.current.width - paddleWidth, position.rightPaddleY, paddleWidth, paddleHeight);
+
+    ctx.fillText(`Score: ${score.leftPlayer} - ${score.rightPlayer}`, 20, 20);
   }
 
   const play = (): void => {
@@ -175,7 +247,7 @@ const Pong = (): ReactElement => {
     if (keys.includes(event.key)) {
       event.preventDefault();
 
-      setIsKeyDown((draft) => {
+      setKeyDown((draft) => {
         draft[event.key as keyof KeyDown] = true;
       })
     }
@@ -185,7 +257,7 @@ const Pong = (): ReactElement => {
     if (keys.includes(event.key)) {
       event.preventDefault();
 
-      setIsKeyDown((draft) => {
+      setKeyDown((draft) => {
         draft[event.key as keyof KeyDown] = false;
       })
     }
@@ -195,20 +267,22 @@ const Pong = (): ReactElement => {
     <div className={'max-w-2xl m-auto px-2 flex flex-col'}>
       <canvas
         width={600}
-        height={600}
+        height={400}
         className={
           'bg-black m-auto border-2 border-solid border-white rounded-lg'
         }
         ref={canvas}
       />
       <div className={'mx-auto mt-5 flex gap-2.5'}>
-        <Button onClick={console.log}>Start</Button>
-        <Button onClick={console.log}>Pause</Button>
-        <Button onClick={console.log}>Restart</Button>
+        <Button onClick={startGame}>Start</Button>
+        <Button onClick={pauseGame}>Pause</Button>
+        <Button onClick={restartGame}>Restart</Button>
       </div>
       <p className={'text-center m-5'}>
         Controls: Player 1 (W and S) | Player 2 (Arrow Up and Down){' '}
-        {JSON.stringify(isKeyDown)}
+        {JSON.stringify(keyDown)}
+        {JSON.stringify(position)}
+        {JSON.stringify(ballSpeed)}
       </p>
     </div>
   );
