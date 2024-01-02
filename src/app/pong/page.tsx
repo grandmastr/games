@@ -2,6 +2,8 @@ import {ReactElement} from 'react';
 
 import {PongGame} from '@/features';
 
-export default () => {
+const Pong = (): ReactElement => {
   return <PongGame />;
 };
+
+export default Pong

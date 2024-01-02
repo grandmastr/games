@@ -45,8 +45,8 @@ const Pong = (): ReactElement => {
   const [position, setPosition] = useImmer<Positions>({
     ballX: canvas.current ? canvas.current.width * 0.5 : 0,
     ballY: canvas.current ? canvas.current.height * 0.5 : 0,
-    leftPaddleY: canvas.current ? canvas.current.height * 0.5 - paddleHeight * 0.5 : 0,
-    rightPaddleY: canvas.current ? canvas.current.height * 0.5 - paddleHeight * 0.5 : 0
+    leftPaddleY: canvas.current ? canvas.current.height * 0.5  : 0,
+    rightPaddleY: canvas.current ? canvas.current.height * 0.5 : 0
   });
 
   const [score, setScore] = useImmer<Score>({
@@ -67,8 +67,6 @@ const Pong = (): ReactElement => {
   });
 
   React.useEffect(() => {
-    paintInCanvas();
-
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
@@ -79,12 +77,26 @@ const Pong = (): ReactElement => {
   }, []);
 
   React.useEffect(() => {
-    console.log(position);
+    // effect to update the position of the ball
+    // and repaint the canvas
+    if (isRunning) {
+      animationId.current = requestAnimationFrame(play);
+    }
   }, [position])
 
   React.useEffect(() => {
     updateGame();
   }, [keyDown])
+
+  // React.useEffect(() => {
+  //   if (!isRunning) {
+  //     setPosition(draft => {
+  //       draft.ballX = (canvas.current as HTMLCanvasElement).width / 2
+  //       draft.ballY = (canvas.current as HTMLCanvasElement).height / 2
+  //     })
+  //     paintInCanvas()
+  //   }
+  // }, [isRunning, position])
 
   const startGame = (): void => {
     if (!isRunning) {
@@ -103,7 +115,8 @@ const Pong = (): ReactElement => {
 
   const restartGame = (): void => {
     setIsRunning(false);
-    // some reset action
+
+    reset();
   }
 
   const reset = (): void => {
@@ -200,6 +213,42 @@ const Pong = (): ReactElement => {
     paintInCanvas();
   }
 
+  // const paintInCanvas = (): void => {
+  //   let ctx: CanvasRenderingContext2D;
+  //
+  //   canvas.current = canvas.current as HTMLCanvasElement
+  //
+  //   // @ts-ignore
+  //   ctx = canvas.current.getContext('2d');
+  //
+  //   ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
+  //
+  //   ctx.fillStyle = '#FFF';
+  //   ctx.font = "16px Arial";
+  //   ctx.strokeStyle = '#FFF';
+  //
+  //   ctx.beginPath();
+  //   ctx.moveTo(canvas.current.width / 2, 0);
+  //   ctx.lineTo(canvas.current.width / 2, canvas.current.height);
+  //   ctx.stroke();
+  //   ctx.closePath();
+  //
+  //   // draw ball
+  //   ctx.beginPath();
+  //   ctx.arc(position.ballX, position.ballY, ballRadius, 0, Math.PI * 2);
+  //   ctx.fill();
+  //   ctx.closePath();
+  //
+  //   // left paddle
+  //   ctx.fillRect(0, position.leftPaddleY, paddleWidth, paddleHeight);
+  //
+  //   // right paddle
+  //   ctx.fillRect(canvas.current.width - paddleWidth, position.rightPaddleY, paddleWidth, paddleHeight);
+  //
+  //   ctx.fillText(`Score: ${score.leftPlayer} - ${score.rightPlayer}`, 20, 20);
+  // }
+
+  // paintincanvas function to paint paddles and ball, with the ball positioned in the middle of the canvas
   const paintInCanvas = (): void => {
     let ctx: CanvasRenderingContext2D;
 
@@ -222,16 +271,14 @@ const Pong = (): ReactElement => {
 
     // draw ball
     ctx.beginPath();
-    console.log(1)
-    ctx.arc(position.ballX + 20, position.ballY + 50, ballRadius, 0, Math.PI * 2);
-    console.log(2)
+    ctx.arc(position.ballX, position.ballY, ballRadius, 0, Math.PI * 2);
     ctx.fill();
-    console.log(3)
     ctx.closePath();
-    console.log(4)
 
+    // left paddle
     ctx.fillRect(0, position.leftPaddleY, paddleWidth, paddleHeight);
 
+    // right paddle
     ctx.fillRect(canvas.current.width - paddleWidth, position.rightPaddleY, paddleWidth, paddleHeight);
 
     ctx.fillText(`Score: ${score.leftPlayer} - ${score.rightPlayer}`, 20, 20);
@@ -283,6 +330,7 @@ const Pong = (): ReactElement => {
         {JSON.stringify(keyDown)}
         {JSON.stringify(position)}
         {JSON.stringify(ballSpeed)}
+        {JSON.stringify(isRunning)}
       </p>
     </div>
   );
